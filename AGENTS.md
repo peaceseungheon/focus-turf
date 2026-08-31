@@ -4,7 +4,7 @@
 
 ## 1. 프로젝트 개요
 
-이 저장소는 언어와 프레임워크 같은 스택이 아직 확정되지 않은 상태다. 코드 작업을 시작하기 전에 반드시 스택 현황([스택 지침](docs/guidelines/stack/README.md))을 확인한다. 지침 문서 체계는 이 저장소에서 일하는 에이전트와 사람이 공동으로 준수하는 기준이다.
+이 저장소의 모바일 앱 스택은 2026-08-31 React Native + TypeScript로 확정되었다(백엔드 등 나머지 스택은 미정). 코드 작업을 시작하기 전에 반드시 스택 현황([스택 지침](docs/guidelines/stack/README.md))을 확인한다. 지침 문서 체계는 이 저장소에서 일하는 에이전트와 사람이 공동으로 준수하는 기준이다.
 
 ## 2. 지침 맵
 
@@ -17,6 +17,7 @@
 | [Git 워크플로우](docs/guidelines/version-control/git-workflow.md) | 브랜치, PR 작업 전 |
 | [커밋 컨벤션](docs/guidelines/version-control/commit-conventions.md) | 커밋 작성 전 |
 | [스택 지침](docs/guidelines/stack/README.md) | 특정 언어, 프레임워크 작업 시작 전, 반드시 여기부터 |
+| [React Native 스택 지침](docs/guidelines/stack/react-native.md) | React Native·TypeScript 앱 코드 작업 전, 반드시 여기부터 |
 | [스택 지침 양식](docs/guidelines/stack/_template.md) | 새 스택 지침 문서를 만들 때 쓰는 양식 |
 
 ## 3. 경계
