@@ -7,9 +7,11 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "io.github.peaceseungheon.focusturf"
     },
     "android": {
+      "package": "io.github.peaceseungheon.focusturf",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/android-icon-foreground.png",
@@ -17,8 +19,7 @@
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "permissions": [],
-      "package": "com.anonymous.app"
+      "permissions": []
     },
     "web": {
       "favicon": "./assets/favicon.png"
