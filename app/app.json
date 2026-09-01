@@ -28,7 +28,7 @@
       [
         "@mj-studio/react-native-naver-map",
         {
-          "client_id": "PLACEHOLDER_NAVER_MAPS_CLIENT_ID"
+          "client_id": "xkpui58a6g"
         }
       ],
       "@rnmapbox/maps"
