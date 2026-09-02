@@ -1,3 +1,5 @@
+import './src/polyfills/text-decoder';
+
 import { registerRootComponent } from 'expo';
 
 import App from './src/app/App';
