@@ -25,6 +25,7 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
+      "./plugins/naver-map-maven-plugin.js",
       [
         "@mj-studio/react-native-naver-map",
         {
