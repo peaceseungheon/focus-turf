@@ -12,6 +12,7 @@ jest.mock('@react-native-async-storage/async-storage', () => ({
 function entry(id: string, overrides: Partial<SessionLogEntry> = {}): SessionLogEntry {
   return {
     id,
+    cellId: '8ad12a219477ffff',
     mode: 'normal',
     startedAt: 1_000,
     endedAt: 61_000,

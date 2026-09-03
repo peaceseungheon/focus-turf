@@ -37,8 +37,22 @@ import {
   startSampleWatch,
 } from '../../services/location/location-service';
 import { appendSessionEntry } from '../../services/storage/session-log';
+import { readTerritory, writeTerritory } from '../../services/storage/territory-store';
+import {
+  applyDecay,
+  applyEarning,
+  isOccupied,
+  type TileOccupation,
+} from '../territory/occupation';
 
 const TERMINAL_STATUSES: ReadonlySet<SessionStatus> = new Set(['finished', 'failed_hardcore']);
+
+/** 세션 종료 직후 해당 타일의 점령 현황(정산 화면 표시용). */
+export interface OccupationOutcome {
+  cellId: string;
+  score: number;
+  occupied: boolean;
+}
 
 export interface UseFocusSessionResult {
   status: SessionStatus;
@@ -46,6 +60,7 @@ export interface UseFocusSessionResult {
   elapsedMs: number;
   snapshot: VerifierSnapshot | null;
   lastSettlement: SettlementResult | null;
+  lastOccupation: OccupationOutcome | null;
   /** 경계 표시용 사용자 안내(권한 거부, 저장 실패 등). */
   notice: string | null;
   actions: {
@@ -61,6 +76,7 @@ export function useFocusSession(): UseFocusSessionResult {
   const [nowTick, setNowTick] = useState(() => Date.now());
   const [snapshot, setSnapshot] = useState<VerifierSnapshot | null>(null);
   const [lastSettlement, setLastSettlement] = useState<SettlementResult | null>(null);
+  const [lastOccupation, setLastOccupation] = useState<OccupationOutcome | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
 
   const verifierRef = useRef<VerifierState | null>(null);
@@ -153,6 +169,7 @@ export function useFocusSession(): UseFocusSessionResult {
     persistedRef.current = false;
     setSnapshot(null);
     setLastSettlement(null);
+    setLastOccupation(null);
     dispatch({ type: 'START', mode, startCellId: cellAt(sample), at: Date.now() });
     await startWatch();
   }
@@ -173,6 +190,27 @@ export function useFocusSession(): UseFocusSessionResult {
   async function end(): Promise<void> {
     dispatch({ type: 'END', at: Date.now() });
     await stopWatch();
+  }
+
+  async function reflectEarning(
+    cellId: string,
+    points: number,
+    earnedAt: number,
+  ): Promise<OccupationOutcome | null> {
+    if (points <= 0) {
+      return null; // 0점 세션은 점령 상태를 바꾸지 않는다
+    }
+    const territory = await readTerritory();
+    const current: TileOccupation = territory[cellId] ?? { cellId, score: 0, lastEarnedAt: 0 };
+    const earned = applyEarning(applyDecay(current, earnedAt), points, earnedAt);
+    await writeTerritory({ ...territory, [cellId]: earned });
+    const outcome: OccupationOutcome = {
+      cellId,
+      score: earned.score,
+      occupied: isOccupied(earned),
+    };
+    setLastOccupation(outcome);
+    return outcome;
   }
 
   useEffect(() => {
@@ -210,6 +248,7 @@ export function useFocusSession(): UseFocusSessionResult {
       setLastSettlement(state.settlement);
       appendSessionEntry({
         id: `session-${state.startedAt}`,
+        cellId: state.startCellId,
         mode: state.mode,
         startedAt: state.startedAt,
         endedAt: state.endedAt,
@@ -220,6 +259,12 @@ export function useFocusSession(): UseFocusSessionResult {
         setNotice('세션 기록 저장에 실패했습니다.');
         void cause;
       });
+      reflectEarning(state.startCellId, state.settlement.points, state.endedAt).catch(
+        (cause: unknown) => {
+          setNotice('영토 점령 반영에 실패했습니다.');
+          void cause;
+        },
+      );
     }
   }, [state]);
 
@@ -244,6 +289,7 @@ export function useFocusSession(): UseFocusSessionResult {
     elapsedMs: elapsedMs(state, nowTick),
     snapshot,
     lastSettlement,
+    lastOccupation,
     notice,
     actions: {
       start,
