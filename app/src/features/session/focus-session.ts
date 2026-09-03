@@ -117,13 +117,15 @@ function failHardcoreAtGraceEdge(
 }
 
 export function reduceSession(state: FocusSessionState, event: SessionEvent): FocusSessionState {
-  if (isTerminal(state)) {
-    return state; // 종료 상태는 모든 이벤트를 무시한다(늦은 타이머 방어)
+  // 종료 상태는 늦은 타이머 등 모든 이벤트를 무시하되, START(새 세션 시작)만 허용한다
+  if (isTerminal(state) && event.type !== 'START') {
+    return state;
   }
 
   switch (event.type) {
     case 'START': {
-      if (state.status !== 'idle') {
+      // idle·종료 상태에서만 새 세션을 연다(가동·일시정지 중 이중 시작은 무시)
+      if (isActive(state)) {
         return state;
       }
       return {
