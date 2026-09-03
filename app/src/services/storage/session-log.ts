@@ -7,6 +7,8 @@ import type { EndReason, SessionMode } from '../../features/session/session-poli
 
 export interface SessionLogEntry {
   id: string;
+  /** 세션이 진행된 타일(H3 셀) — 점령 반영의 감사 로그. */
+  cellId: string;
   mode: SessionMode;
   startedAt: number;
   endedAt: number;
@@ -15,7 +17,8 @@ export interface SessionLogEntry {
   endReason: EndReason;
 }
 
-const STORAGE_KEY = 'focus-turf/session-log/v1';
+// v2: cellId 추가 — v1 엔트리와 호환되지 않아 키 버전을 올렸다
+const STORAGE_KEY = 'focus-turf/session-log/v2';
 
 export async function readSessionLog(): Promise<ReadonlyArray<SessionLogEntry>> {
   const raw = await AsyncStorage.getItem(STORAGE_KEY);
