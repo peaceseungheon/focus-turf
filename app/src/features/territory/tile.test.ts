@@ -5,7 +5,7 @@
  * @jest-environment node
  */
 import { getResolution } from 'h3-js';
-import { boundaryOf, cellAt, cellsAround, centerOf, TILE_RESOLUTION } from './tile';
+import { boundaryOf, cellAt, cellsAround, cellsAroundCell, centerOf, TILE_RESOLUTION } from './tile';
 
 const GANGNAM_STATION = { lat: 37.4979, lng: 127.0276 };
 
@@ -24,6 +24,14 @@ describe('tile', () => {
     expect(cellsAround(GANGNAM_STATION, 0)).toHaveLength(1);
     expect(cellsAround(GANGNAM_STATION, 1)).toHaveLength(7);
     expect(cellsAround(GANGNAM_STATION, 2)).toHaveLength(19);
+  });
+
+  test('cellsAroundCell은 좌표 기반 호출과 동일한 결과를 반환한다', () => {
+    const cell = cellAt(GANGNAM_STATION);
+    expect(cellsAroundCell(cell, 0)).toHaveLength(1);
+    expect(cellsAroundCell(cell, 1)).toHaveLength(7);
+    expect(cellsAroundCell(cell, 2)).toHaveLength(19);
+    expect(cellsAroundCell(cell, 1)).toEqual(cellsAround(GANGNAM_STATION, 1));
   });
 
   test('경계는 중심 근처의 6개 꼭짓점으로 구성된다', () => {

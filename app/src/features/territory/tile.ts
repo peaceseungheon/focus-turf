@@ -22,6 +22,11 @@ export function cellsAround(
   return gridDisk(cellAt(center, resolution), ringRadius);
 }
 
+/** 셀 인덱스 기준으로 반지름 k겹의 이웃 셀 인덱스 목록을 반환한다. */
+export function cellsAroundCell(cell: string, ringRadius: number): string[] {
+  return gridDisk(cell, ringRadius);
+}
+
 /** 타일 하나의 육각 경계(위도·경도 꼭짓점)를 반환한다. */
 export function boundaryOf(cell: string): LatLng[] {
   return cellToBoundary(cell).map(([lat, lng]) => ({ lat, lng }));
