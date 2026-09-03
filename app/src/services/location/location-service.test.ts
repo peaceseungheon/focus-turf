@@ -51,7 +51,7 @@ describe('location-service', () => {
 
     const [options] = jest.mocked(Location.watchPositionAsync).mock.calls[0]!;
     expect(options.timeInterval).toBe(15_000);
-    expect(options.distanceFilter).toBe(0);
+    expect(options.distanceInterval).toBe(0);
     expect(options.accuracy).toBe(Location.Accuracy.Balanced);
   });
 

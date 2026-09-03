@@ -33,7 +33,7 @@ export async function startSampleWatch(
     {
       accuracy: Location.Accuracy.Balanced,
       timeInterval: SAMPLE_INTERVAL_MS,
-      distanceFilter: 0,
+      distanceInterval: 0,
     },
     (location) => {
       callbacks.onSample({
