@@ -1,4 +1,5 @@
 import './src/polyfills/text-decoder';
+import './unistyles';
 
 import { registerRootComponent } from 'expo';
 
