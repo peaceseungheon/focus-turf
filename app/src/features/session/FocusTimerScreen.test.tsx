@@ -22,6 +22,7 @@ const baseResult: UseFocusSessionResult = {
   elapsedMs: 0,
   snapshot: null,
   lastSettlement: null,
+  lastOccupation: null,
   notice: null,
   actions: { start, pause, resume, end },
 };
@@ -99,12 +100,27 @@ describe('FocusTimerScreen', () => {
       mode: 'normal',
       elapsedMs: 300_000,
       lastSettlement: { creditedMs: 300_000, creditedMinutes: 5, points: 50, mode: 'normal' },
+      lastOccupation: { cellId: 'c', score: 150, occupied: true },
     });
     await render(<FocusTimerScreen onBack={jest.fn()} />);
 
     expect(screen.getByText('세션 종료')).toBeTruthy();
     expect(screen.getByText('점수 50점')).toBeTruthy();
     expect(screen.getByText('인정 시간 05:00')).toBeTruthy();
+    expect(screen.getByText('타일 보유 150점 · 점령 중')).toBeTruthy();
+  });
+
+  test('점령 문턱 미달은 무주지로 표시한다', async () => {
+    mockHook({
+      status: 'finished',
+      mode: 'normal',
+      elapsedMs: 300_000,
+      lastSettlement: { creditedMs: 300_000, creditedMinutes: 5, points: 50, mode: 'normal' },
+      lastOccupation: { cellId: 'c', score: 85, occupied: false },
+    });
+    await render(<FocusTimerScreen onBack={jest.fn()} />);
+
+    expect(screen.getByText('타일 보유 85점 · 무주지(문턱 100점)')).toBeTruthy();
   });
 
   test('하드코어 실패 화면은 실패 안내를 표시한다', async () => {

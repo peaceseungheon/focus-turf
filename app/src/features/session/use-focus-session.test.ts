@@ -9,12 +9,14 @@ import { AppState } from 'react-native';
 
 import type { Sample } from './location-verifier';
 import { useFocusSession, type UseFocusSessionResult } from './use-focus-session';
+import { cellAt } from '../territory/tile';
 import {
   getCurrentSample,
   requestWhenInUsePermission,
   startSampleWatch,
 } from '../../services/location/location-service';
 import { appendSessionEntry } from '../../services/storage/session-log';
+import { readTerritory, writeTerritory } from '../../services/storage/territory-store';
 
 jest.mock('../../services/location/location-service', () => ({
   requestWhenInUsePermission: jest.fn(),
@@ -24,6 +26,11 @@ jest.mock('../../services/location/location-service', () => ({
 
 jest.mock('../../services/storage/session-log', () => ({
   appendSessionEntry: jest.fn(),
+}));
+
+jest.mock('../../services/storage/territory-store', () => ({
+  readTerritory: jest.fn(),
+  writeTerritory: jest.fn(),
 }));
 
 const BASE_SAMPLE: Sample = { lat: 37.4979, lng: 127.0276, timestamp: 1_000 };
@@ -84,6 +91,10 @@ describe('useFocusSession', () => {
     jest.mocked(startSampleWatch).mockReset();
     jest.mocked(appendSessionEntry).mockReset();
     jest.mocked(appendSessionEntry).mockResolvedValue(undefined);
+    jest.mocked(readTerritory).mockReset();
+    jest.mocked(readTerritory).mockResolvedValue({});
+    jest.mocked(writeTerritory).mockReset();
+    jest.mocked(writeTerritory).mockResolvedValue(undefined);
     jest.spyOn(AppState, 'addEventListener').mockReturnValue({ remove: jest.fn() } as never);
   });
 
@@ -160,6 +171,50 @@ describe('useFocusSession', () => {
       await endAgain();
     });
     expect(appendSessionEntry).toHaveBeenCalledTimes(1);
+  });
+
+  test('종료 시 정산 점수가 타일 점령 상태에 반영된다(§6-②)', async () => {
+    mockGrantedWatch();
+    const cell = cellAt(BASE_SAMPLE);
+    jest.mocked(readTerritory).mockResolvedValue({
+      [cell]: { cellId: cell, score: 90, lastEarnedAt: Date.now() },
+    });
+    const rendered = await renderHook(() => useFocusSession());
+    await startSession(rendered, 'normal');
+    await act(async () => {
+      jest.advanceTimersByTime(61_000);
+    });
+
+    const end = currentOf(rendered).actions.end;
+    await act(async () => {
+      await end();
+    });
+
+    await waitFor(() => expect(currentOf(rendered).lastOccupation).not.toBeNull());
+    expect(currentOf(rendered).lastOccupation).toEqual({
+      cellId: cell,
+      score: 100, // 기존 90점 + 세션 10점 — 문턱 통과
+      occupied: true,
+    });
+    expect(writeTerritory).toHaveBeenCalledTimes(1);
+  });
+
+  test('0점 세션은 점령 상태를 건드리지 않는다(§7 최소 인정 단위)', async () => {
+    mockGrantedWatch();
+    const rendered = await renderHook(() => useFocusSession());
+    await startSession(rendered, 'normal');
+    await act(async () => {
+      jest.advanceTimersByTime(30_000);
+    });
+
+    const end = currentOf(rendered).actions.end;
+    await act(async () => {
+      await end();
+    });
+
+    expect(currentOf(rendered).status).toBe('finished');
+    expect(writeTerritory).not.toHaveBeenCalled();
+    expect(currentOf(rendered).lastOccupation).toBeNull();
   });
 
   test('하드코어 백그라운드 3분 경과 타이머는 실패로 이어진다(#15 연계)', async () => {

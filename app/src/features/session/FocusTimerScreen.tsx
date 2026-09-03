@@ -44,7 +44,8 @@ function formatClock(totalMs: number): string {
 }
 
 export function FocusTimerScreen({ onBack }: Props) {
-  const { status, mode, elapsedMs, snapshot, lastSettlement, notice, actions } = useFocusSession();
+  const { status, mode, elapsedMs, snapshot, lastSettlement, lastOccupation, notice, actions } =
+    useFocusSession();
   const [selectedMode, setSelectedMode] = useState<ModeSelection>('normal');
 
   const isIdle = status === 'idle';
@@ -77,6 +78,12 @@ export function FocusTimerScreen({ onBack }: Props) {
             </Text>
             <Text>점수 {lastSettlement?.points ?? 0}점</Text>
             <Text>인정 시간 {formatClock(lastSettlement?.creditedMs ?? 0)}</Text>
+            {lastOccupation !== null && (
+              <Text>
+                타일 보유 {lastOccupation.score}점 ·{' '}
+                {lastOccupation.occupied ? '점령 중' : '무주지(문턱 100점)'}
+              </Text>
+            )}
             {lastSettlement?.zeroReason === 'below_minimum' && (
               <Text style={styles.warning}>1분 미만은 점수가 부여되지 않습니다</Text>
             )}
