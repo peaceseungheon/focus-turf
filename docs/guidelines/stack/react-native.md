@@ -6,9 +6,9 @@ Focus Turf 모바일 앱의 UI와 클라이언트 로직 전반을 React Native 
 
 ## 버전·도구체인
 
-- **React Native 0.87.x** — New Architecture(Fabric·TurboModules/JSI)가 기본 전제다. Old Architecture로의 비활성화를 금지한다.
+- **React Native — Expo SDK가 고정하는 버전(현재 SDK 57 → RN 0.86.x)** — New Architecture(Fabric·TurboModules/JSI)가 기본 전제다. Old Architecture로의 비활성화를 금지한다. bare RN 최신(0.87.x)과의 차이는 Expo SDK 릴리즈 주기에 따른 것이다.
 - **TypeScript 5.x** — `strict: true` 필수.
-- **Node 22 LTS** — `.nvmrc`와 `package.json`의 `engines`로 고정한다.
+- **Node 활성 LTS(2026-09 기준 24.x)** — `.nvmrc`와 `package.json`의 `engines`로 고정한다.
 - **패키지 매니저 npm** — lockfile(package-lock.json)을 커밋하고 다른 매니저를 혼용하지 않는다.
 - **워크플로: Expo(managed + dev client)를 기본 방침으로 한다.** 네이티브 모듈(지도 SDK 래퍼 등)의 Expo 호환성은 기술 검증 Spike에서 확인한 뒤 확정한다. Expo가 성립하지 않아 bare RN으로 전환할 때는 이 문서를 먼저 갱신한다.
 - 정확한 버전은 프로젝트 초기화 커밋에서 lockfile로 고정한다.
@@ -77,7 +77,7 @@ app/
 
 ## 의존성 관리 규칙
 
-- 의존성 추가 전 필수 확인: (1) New Architecture 호환 여부 (2) 최근 12개월 내 릴리즈(유지보수 상태) (3) RN 0.87 호환.
+- 의존성 추가 전 필수 확인: (1) New Architecture 호환 여부 (2) 최근 12개월 내 릴리즈(유지보수 상태) (3) Expo SDK가 고정한 RN 버전 호환.
 - 네이티브 코드를 포함하는 패키지(지도 SDK 래퍼 등)는 기술 검증(Spike)을 거친 뒤 추가한다.
 - 유료 라이선스 패키지(예: TransistorSoft 계열 백그라운드 위치)는 사용자 승인 후에만 추가한다.
 - npm 외 매니저로 설치하지 않고, lockfile 갱신 없이 커밋하지 않는다.

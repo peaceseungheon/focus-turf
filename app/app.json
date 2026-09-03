@@ -1,0 +1,38 @@
+{
+  "expo": {
+    "name": "app",
+    "slug": "app",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "io.github.peaceseungheon.focusturf"
+    },
+    "android": {
+      "package": "io.github.peaceseungheon.focusturf",
+      "adaptiveIcon": {
+        "backgroundColor": "#E6F4FE",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false,
+      "permissions": []
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "./plugins/naver-map-maven-plugin.js",
+      [
+        "@mj-studio/react-native-naver-map",
+        {
+          "client_id": "xkpui58a6g"
+        }
+      ],
+      "@rnmapbox/maps"
+    ]
+  }
+}
