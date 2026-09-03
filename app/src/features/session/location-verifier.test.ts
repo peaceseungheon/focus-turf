@@ -38,6 +38,15 @@ function movingSamples(
 }
 
 /** 시작 셀에서 2링 떨어진 셀의 중심 좌표(보장된 지오펜스 외부). */
+/** 읽기 전용 배열에서 안전하게 원소를 꺼낸다(비단언 금지 규칙 준수). */
+function at<T>(items: readonly T[], index: number): T {
+  const item = items[index];
+  if (item === undefined) {
+    throw new Error(`인덱스 ${index}가 범위를 벗어났다`);
+  }
+  return item;
+}
+
 function outsidePosition(startCell: string, pick: number): { lat: number; lng: number } {
   const ring2 = cellsAroundCell(startCell, 2).filter(
     (c) => !cellsAroundCell(startCell, 1).includes(c),
@@ -136,14 +145,14 @@ describe('location-verifier — 속도 누적', () => {
   test('정지 샘플은 속도 0으로 창을 초기화한다(#13)', () => {
     const state = createVerifier(cellAt(BASE));
     const fast = movingSamples(4, SPEED_LIMIT_KMH + 1);
-    let s = advanceVerifier(state, fast[0]!).state;
+    let s = advanceVerifier(state, at(fast, 0)).state;
     for (let i = 1; i < 4; i++) {
-      s = advanceVerifier(s, fast[i]!).state;
+      s = advanceVerifier(s, fast[i] as Sample).state;
     }
     const stopped = advanceVerifier(s, {
-      lat: fast[3]!.lat,
+      lat: at(fast, 3).lat,
       lng: BASE.lng,
-      timestamp: fast[3]!.timestamp + STEP_MS,
+      timestamp: at(fast, 3).timestamp + STEP_MS,
     });
     expect(stopped.snapshot.fastWindowMs).toBe(0);
     expect(stopped.snapshot.speedKmh).toBe(0);
@@ -152,27 +161,27 @@ describe('location-verifier — 속도 누적', () => {
   test('임계 초과 3분 지속 시 창 시작 시각으로 소급 확정한다(#9)', () => {
     const state = createVerifier(cellAt(BASE));
     const fast = movingSamples(13, SPEED_LIMIT_KMH + 1); // 12구간 × 15초 = 180초
-    let s = advanceVerifier(state, fast[0]!).state;
-    let decision = advanceVerifier(s, fast[1]!);
+    let s = advanceVerifier(state, at(fast, 0)).state;
+    let decision = advanceVerifier(s, at(fast, 1));
     for (let i = 2; i < fast.length; i++) {
       s = decision.state;
-      decision = advanceVerifier(s, fast[i]!);
+      decision = advanceVerifier(s, fast[i] as Sample);
     }
-    expect(decision.speedConfirmedAt).toBe(fast[0]!.timestamp);
+    expect(decision.speedConfirmedAt).toBe(at(fast, 0).timestamp);
   });
 
   test('임계 미달 구간이 끼면 창이 초기화되어 확정되지 않는다(#10)', () => {
     const state = createVerifier(cellAt(BASE));
     const fastA = movingSamples(6, SPEED_LIMIT_KMH + 1); // 75초 누적
-    const slow = movingSamples(2, SPEED_LIMIT_KMH - 1, fastA[5]!.timestamp + STEP_MS, fastA[5]!.lat);
-    const fastB = movingSamples(7, SPEED_LIMIT_KMH + 2, slow[1]!.timestamp + STEP_MS, slow[1]!.lat);
+    const slow = movingSamples(2, SPEED_LIMIT_KMH - 1, at(fastA, 5).timestamp + STEP_MS, at(fastA, 5).lat);
+    const fastB = movingSamples(7, SPEED_LIMIT_KMH + 2, at(slow, 1).timestamp + STEP_MS, at(slow, 1).lat);
     const segments = [...fastA, ...slow, ...fastB];
 
-    let s = advanceVerifier(state, segments[0]!).state;
-    let decision = advanceVerifier(s, segments[1]!);
+    let s = advanceVerifier(state, at(segments, 0)).state;
+    let decision = advanceVerifier(s, at(segments, 1));
     for (let i = 2; i < segments.length; i++) {
       s = decision.state;
-      decision = advanceVerifier(s, segments[i]!);
+      decision = advanceVerifier(s, segments[i] as Sample);
     }
     expect(decision.speedConfirmedAt).toBeUndefined();
   });
@@ -183,23 +192,23 @@ describe('location-verifier — 속도 누적', () => {
     const part2 = movingSamples(
       6,
       SPEED_LIMIT_KMH + 2,
-      part1[5]!.timestamp + MAX_SEGMENT_GAP_MS + 60_000,
-      part1[5]!.lat,
+      at(part1, 5).timestamp + MAX_SEGMENT_GAP_MS + 60_000,
+      at(part1, 5).lat,
     );
-    let s = advanceVerifier(state, part1[0]!).state;
-    let decision = advanceVerifier(s, part1[1]!);
+    let s = advanceVerifier(state, at(part1, 0)).state;
+    let decision = advanceVerifier(s, at(part1, 1));
     for (let i = 2; i < part1.length; i++) {
       s = decision.state;
-      decision = advanceVerifier(s, part1[i]!);
+      decision = advanceVerifier(s, part1[i] as Sample);
     }
-    const afterGap = advanceVerifier(decision.state, part2[0]!);
+    const afterGap = advanceVerifier(decision.state, at(part2, 0));
     expect(afterGap.snapshot.fastWindowMs).toBe(0);
   });
 
   test('단일 급점프 샘플은 창을 1구간만 채운다(#7)', () => {
     const state = createVerifier(cellAt(BASE));
     const wildLat = northLat(2_000);
-    let s = advanceVerifier(state, { ...BASE, timestamp: T0 - STEP_MS }).state;
+    const s = advanceVerifier(state, { ...BASE, timestamp: T0 - STEP_MS }).state;
     const jump = advanceVerifier(s, { lat: wildLat, lng: BASE.lng, timestamp: T0 });
     expect(jump.snapshot.speedKmh).toBeGreaterThan(SPEED_LIMIT_KMH);
     expect(jump.snapshot.fastWindowMs).toBe(STEP_MS);
