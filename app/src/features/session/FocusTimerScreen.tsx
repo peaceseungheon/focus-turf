@@ -2,7 +2,8 @@
  * 집중 타이머 화면 — 세션 시작/정지/재개와 검증 상태 표시.
  */
 import { useState } from 'react';
-import { Button, StyleSheet, Text, View } from 'react-native';
+import { Button, Text, View } from 'react-native';
+import { StyleSheet } from 'react-native-unistyles';
 
 import { useFocusSession } from './use-focus-session';
 import type { SessionMode } from './session-policy';
@@ -24,17 +25,22 @@ const AUTO_PAUSE_MESSAGE: Record<string, string> = {
   paused_location: '위치 신호를 확인하지 못해 일시정지됐습니다. 위치를 확인한 뒤 재개하세요.',
 };
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
-  content: { flex: 1, padding: 24, gap: 12, justifyContent: 'center' },
-  modeRow: { flexDirection: 'row', gap: 8, alignItems: 'center' },
-  elapsed: { fontSize: 56, fontWeight: 'bold', fontVariant: ['tabular-nums'], textAlign: 'center' },
-  status: { fontSize: 15, textAlign: 'center' },
-  warning: { fontSize: 13, color: '#B3261E', textAlign: 'center' },
-  controls: { flexDirection: 'row', justifyContent: 'center', gap: 12 },
-  settlement: { padding: 16, gap: 4, alignItems: 'center' },
-  settlementTitle: { fontSize: 16, fontWeight: 'bold' },
-});
+const styles = StyleSheet.create((theme) => ({
+  container: { flex: 1, backgroundColor: theme.colors.background },
+  content: {
+    flex: 1,
+    padding: theme.spacing.xl,
+    gap: theme.spacing.md,
+    justifyContent: 'center',
+  },
+  modeRow: { flexDirection: 'row', gap: theme.spacing.sm, alignItems: 'center' },
+  elapsed: { ...theme.typography.clock, textAlign: 'center' },
+  status: { ...theme.typography.body, textAlign: 'center' },
+  warning: { ...theme.typography.caption, color: theme.colors.warning, textAlign: 'center' },
+  controls: { flexDirection: 'row', justifyContent: 'center', gap: theme.spacing.md },
+  settlement: { padding: theme.spacing.lg, gap: theme.spacing.xs, alignItems: 'center' },
+  settlementTitle: { ...theme.typography.subtitle },
+}));
 
 function formatClock(totalMs: number): string {
   const totalSeconds = Math.floor(totalMs / 1000);

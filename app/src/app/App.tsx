@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Button, SafeAreaView, ScrollView, StyleSheet, Text } from 'react-native';
+import { Button, SafeAreaView, ScrollView, Text } from 'react-native';
+import { StyleSheet } from 'react-native-unistyles';
 
 import { MapboxHexDemo } from '../features/map/MapboxHexDemo';
 import { NaverHexDemo } from '../features/map/NaverHexDemo';
@@ -7,11 +8,11 @@ import { FocusTimerScreen } from '../features/session/FocusTimerScreen';
 
 type Screen = 'home' | 'naver' | 'mapbox' | 'timer';
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
-  content: { padding: 16, gap: 8 },
-  title: { fontSize: 18, fontWeight: 'bold', marginBottom: 8 },
-});
+const styles = StyleSheet.create((theme) => ({
+  container: { flex: 1, backgroundColor: theme.colors.background },
+  content: { padding: theme.spacing.lg, gap: theme.spacing.sm },
+  title: { ...theme.typography.title, marginBottom: theme.spacing.sm },
+}));
 
 export default function App() {
   const [screen, setScreen] = useState<Screen>('home');

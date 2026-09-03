@@ -1,7 +1,9 @@
 import { NaverMapPolygonOverlay, NaverMapView } from '@mj-studio/react-native-naver-map';
 import { useMemo, useState } from 'react';
-import { Button, Platform, StyleSheet, Text, View } from 'react-native';
+import { Button, Text, View } from 'react-native';
+import { StyleSheet } from 'react-native-unistyles';
 
+import { territoryOverlayColors } from '../../theme/themes';
 import { boundaryOf, cellsAround } from '../territory/tile';
 
 const GANGNAM_STATION = { lat: 37.4979, lng: 127.0276 };
@@ -10,19 +12,19 @@ interface Props {
   onBack: () => void;
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, marginTop: Platform.select({ ios: 40, android: 8, default: 0 }) },
+const styles = StyleSheet.create((theme) => ({
+  container: { flex: 1, marginTop: theme.insets.mapScreenTop },
   map: { flex: 1 },
   controls: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    gap: 4,
+    paddingHorizontal: theme.spacing.lg,
+    paddingVertical: theme.spacing.sm,
+    gap: theme.spacing.xs,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
-  label: { fontSize: 13 },
-});
+  label: { ...theme.typography.caption },
+}));
 
 /** 래퍼 요구사항: coords는 닫힌 링(첫 좌표 == 끝 좌표)이어야 한다. */
 function toClosedRing(cell: string) {
@@ -42,7 +44,7 @@ export function NaverHexDemo({ onBack }: Props) {
       cellsAround(GANGNAM_STATION, radius).map((cell, index) => ({
         cell,
         coords: toClosedRing(cell),
-        color: index % 3 === 0 ? '#3478F6B3' : '#30B0C7B3',
+        color: index % 3 === 0 ? territoryOverlayColors.naver.mineFill : territoryOverlayColors.naver.othersFill,
       })),
     [radius],
   );
@@ -62,7 +64,7 @@ export function NaverHexDemo({ onBack }: Props) {
             key={overlay.cell}
             coords={overlay.coords}
             color={overlay.color}
-            outlineColor="#1B4F9CFF"
+            outlineColor={territoryOverlayColors.naver.outline}
             outlineWidth={1}
           />
         ))}

@@ -1,7 +1,9 @@
 import Mapbox from '@rnmapbox/maps';
 import { useMemo, useState } from 'react';
-import { Button, StyleSheet, Text, View } from 'react-native';
+import { Button, Text, View } from 'react-native';
+import { StyleSheet } from 'react-native-unistyles';
 
+import { territoryOverlayColors } from '../../theme/themes';
 import { boundaryOf, cellsAround } from '../territory/tile';
 
 const GANGNAM_STATION = { lat: 37.4979, lng: 127.0276 };
@@ -10,19 +12,19 @@ interface Props {
   onBack: () => void;
 }
 
-const styles = StyleSheet.create({
+const styles = StyleSheet.create((theme) => ({
   container: { flex: 1 },
   map: { flex: 1 },
   controls: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    gap: 4,
+    paddingHorizontal: theme.spacing.lg,
+    paddingVertical: theme.spacing.sm,
+    gap: theme.spacing.xs,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
-  label: { fontSize: 13 },
-});
+  label: { ...theme.typography.caption },
+}));
 
 void Mapbox.setAccessToken(process.env.EXPO_PUBLIC_MAPBOX_TOKEN ?? '');
 
@@ -62,12 +64,18 @@ export function MapboxHexDemo({ onBack }: Props) {
             id="hex-fill"
             style={{
               fillOpacity: 0.7,
-              fillColor: ['match', ['get', 'ownerClass'], 0, '#3478F6', '#30B0C7'],
+              fillColor: [
+                'match',
+                ['get', 'ownerClass'],
+                0,
+                territoryOverlayColors.mapbox.mineFill,
+                territoryOverlayColors.mapbox.othersFill,
+              ],
             }}
           />
           <Mapbox.LineLayer
             id="hex-outline"
-            style={{ lineColor: '#1B4F9C', lineWidth: 1 }}
+            style={{ lineColor: territoryOverlayColors.mapbox.outline, lineWidth: 1 }}
           />
         </Mapbox.ShapeSource>
       </Mapbox.MapView>
