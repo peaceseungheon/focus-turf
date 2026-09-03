@@ -80,6 +80,32 @@ describe('focus-session — 기본 전이', () => {
   });
 });
 
+describe('focus-session — 종료 후 재시작', () => {
+  test('finished 상태의 START는 새 세션을 연다(새 세션 버튼 무응답 재현)', () => {
+    let state = reduceSession(createIdleSession(), start());
+    state = reduceSession(state, { type: 'END', at: T0 + 5 * MIN });
+    expect(state.status).toBe('finished');
+
+    const restarted = reduceSession(state, start('hardcore', T0 + 10 * MIN));
+    expect(restarted.status).toBe('running');
+    if (restarted.status !== 'running') return;
+    expect(restarted.mode).toBe('hardcore');
+    expect(restarted.startedAt).toBe(T0 + 10 * MIN);
+    expect(restarted.runningIntervals).toEqual([{ startMs: T0 + 10 * MIN }]);
+    expect(restarted).not.toHaveProperty('settlement'); // 이전 정산 잔존 없음
+  });
+
+  test('failed_hardcore 상태의 START도 새 세션을 연다', () => {
+    let state = reduceSession(createIdleSession(), start('hardcore'));
+    state = reduceSession(state, { type: 'APP_BACKGROUND', at: T0 });
+    state = reduceSession(state, { type: 'APP_FOREGROUND', at: T0 + HARDCORE_GRACE_MS });
+    expect(state.status).toBe('failed_hardcore');
+
+    const restarted = reduceSession(state, start('normal', T0 + 10 * MIN));
+    expect(restarted.status).toBe('running');
+  });
+});
+
 describe('focus-session — 자동 일시정지(소급)', () => {
   test('지오펜스 이탈 확정은 첫 외부 샘플 시각에 인터벌을 닫는다(#3 연계)', () => {
     let state = reduceSession(createIdleSession(), start());
