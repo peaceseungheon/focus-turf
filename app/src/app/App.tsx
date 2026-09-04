@@ -6,8 +6,9 @@ import { MapboxHexDemo } from '../features/map/MapboxHexDemo';
 import { NaverHexDemo } from '../features/map/NaverHexDemo';
 import { MyPageScreen } from '../features/mypage/MyPageScreen';
 import { FocusTimerScreen } from '../features/session/FocusTimerScreen';
+import { PrivateZoneScreen } from '../features/territory/PrivateZoneScreen';
 
-type Screen = 'home' | 'naver' | 'mapbox' | 'timer' | 'mypage';
+type Screen = 'home' | 'naver' | 'mapbox' | 'timer' | 'mypage' | 'private-zone';
 
 const styles = StyleSheet.create((theme) => ({
   container: { flex: 1, backgroundColor: theme.colors.background },
@@ -28,7 +29,12 @@ export default function App() {
     return <FocusTimerScreen onBack={() => setScreen('home')} />;
   }
   if (screen === 'mypage') {
-    return <MyPageScreen onBack={() => setScreen('home')} />;
+    return (
+      <MyPageScreen onBack={() => setScreen('home')} onOpenPrivateZone={() => setScreen('private-zone')} />
+    );
+  }
+  if (screen === 'private-zone') {
+    return <PrivateZoneScreen onBack={() => setScreen('home')} />;
   }
 
   return (

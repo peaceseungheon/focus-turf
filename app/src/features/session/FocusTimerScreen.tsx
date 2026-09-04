@@ -50,7 +50,7 @@ function formatClock(totalMs: number): string {
 }
 
 export function FocusTimerScreen({ onBack }: Props) {
-  const { status, mode, elapsedMs, snapshot, lastSettlement, lastOccupation, notice, actions } =
+  const { status, mode, elapsedMs, snapshot, lastSettlement, lastOccupation, protectedTile, notice, actions } =
     useFocusSession();
   const [selectedMode, setSelectedMode] = useState<ModeSelection>('normal');
 
@@ -90,6 +90,9 @@ export function FocusTimerScreen({ onBack }: Props) {
                 {lastOccupation.occupied ? '점령 중' : '무주지(문턱 100점)'}
               </Text>
             )}
+            {protectedTile && (
+              <Text style={styles.warning}>보호 구역 — 이번 세션은 점령에 반영되지 않습니다</Text>
+            )}
             {lastSettlement?.zeroReason === 'below_minimum' && (
               <Text style={styles.warning}>1분 미만은 점수가 부여되지 않습니다</Text>
             )}
@@ -100,6 +103,9 @@ export function FocusTimerScreen({ onBack }: Props) {
             <Text style={styles.status}>
               {MODE_LABEL[mode ?? 'normal']} · {isManualPaused || autoPauseMessage ? '일시정지' : '집중 중'}
             </Text>
+            {protectedTile && (
+              <Text style={styles.warning}>보호 구역 — 이번 세션은 점령에 반영되지 않습니다</Text>
+            )}
             <Text style={styles.elapsed}>{formatClock(elapsedMs)}</Text>
             {autoPauseMessage !== undefined && <Text style={styles.warning}>{autoPauseMessage}</Text>}
             {status === 'running' && snapshot !== null && !snapshot.isInside && (

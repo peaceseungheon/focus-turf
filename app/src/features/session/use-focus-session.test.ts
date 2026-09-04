@@ -16,6 +16,7 @@ import {
   startSampleWatch,
 } from '../../services/location/location-service';
 import { appendSessionEntry } from '../../services/storage/session-log';
+import { readPrivateZones } from '../../services/storage/private-zone-store';
 import { readTerritory, writeTerritory } from '../../services/storage/territory-store';
 
 jest.mock('../../services/location/location-service', () => ({
@@ -31,6 +32,10 @@ jest.mock('../../services/storage/session-log', () => ({
 jest.mock('../../services/storage/territory-store', () => ({
   readTerritory: jest.fn(),
   writeTerritory: jest.fn(),
+}));
+
+jest.mock('../../services/storage/private-zone-store', () => ({
+  readPrivateZones: jest.fn(),
 }));
 
 const BASE_SAMPLE: Sample = { lat: 37.4979, lng: 127.0276, timestamp: 1_000 };
@@ -95,6 +100,8 @@ describe('useFocusSession', () => {
     jest.mocked(readTerritory).mockResolvedValue({});
     jest.mocked(writeTerritory).mockReset();
     jest.mocked(writeTerritory).mockResolvedValue(undefined);
+    jest.mocked(readPrivateZones).mockReset();
+    jest.mocked(readPrivateZones).mockResolvedValue(new Set());
     jest.spyOn(AppState, 'addEventListener').mockReturnValue({ remove: jest.fn() } as never);
   });
 
@@ -215,6 +222,31 @@ describe('useFocusSession', () => {
     expect(currentOf(rendered).status).toBe('finished');
     expect(writeTerritory).not.toHaveBeenCalled();
     expect(currentOf(rendered).lastOccupation).toBeNull();
+  });
+
+  test('보호 구역 타일 세션은 점령에 반영하지 않고 개인 통계만 남긴다(§9)', async () => {
+    mockGrantedWatch();
+    const cell = cellAt(BASE_SAMPLE);
+    jest.mocked(readPrivateZones).mockResolvedValue(new Set([cell]));
+    const rendered = await renderHook(() => useFocusSession());
+    await startSession(rendered, 'normal');
+    await act(async () => {
+      jest.advanceTimersByTime(61_000);
+    });
+    expect(currentOf(rendered).protectedTile).toBe(true);
+
+    const end = currentOf(rendered).actions.end;
+    await act(async () => {
+      await end();
+    });
+
+    expect(currentOf(rendered).status).toBe('finished');
+    expect(writeTerritory).not.toHaveBeenCalled();
+    expect(currentOf(rendered).lastOccupation).toBeNull();
+    expect(appendSessionEntry).toHaveBeenCalledTimes(1);
+    const entry = jest.mocked(appendSessionEntry).mock.calls[0][0];
+    expect(entry.cellId).toBe(cell);
+    expect(entry.points).toBeGreaterThan(0);
   });
 
   test('하드코어 백그라운드 3분 경과 타이머는 실패로 이어진다(#15 연계)', async () => {
