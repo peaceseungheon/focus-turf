@@ -11,6 +11,12 @@ import type * as Location from 'expo-location';
 
 import { cellAt } from '../territory/tile';
 import {
+  applyDecay,
+  applyEarning,
+  isOccupied,
+  type TileOccupation,
+} from '../territory/occupation';
+import {
   createVerifier,
   advanceVerifier,
   resetAccumulators,
@@ -38,12 +44,6 @@ import {
 } from '../../services/location/location-service';
 import { appendSessionEntry } from '../../services/storage/session-log';
 import { readTerritory, writeTerritory } from '../../services/storage/territory-store';
-import {
-  applyDecay,
-  applyEarning,
-  isOccupied,
-  type TileOccupation,
-} from '../territory/occupation';
 
 const TERMINAL_STATUSES: ReadonlySet<SessionStatus> = new Set(['finished', 'failed_hardcore']);
 
