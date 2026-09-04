@@ -16,6 +16,7 @@ import {
   isOccupied,
   type TileOccupation,
 } from '../territory/occupation';
+import { isProtected } from '../territory/private-zone';
 import {
   createVerifier,
   advanceVerifier,
@@ -43,6 +44,7 @@ import {
   startSampleWatch,
 } from '../../services/location/location-service';
 import { appendSessionEntry } from '../../services/storage/session-log';
+import { readPrivateZones } from '../../services/storage/private-zone-store';
 import { readTerritory, writeTerritory } from '../../services/storage/territory-store';
 
 const TERMINAL_STATUSES: ReadonlySet<SessionStatus> = new Set(['finished', 'failed_hardcore']);
@@ -61,6 +63,8 @@ export interface UseFocusSessionResult {
   snapshot: VerifierSnapshot | null;
   lastSettlement: SettlementResult | null;
   lastOccupation: OccupationOutcome | null;
+  /** 이번 세션 타일이 보호 구역인가(§9 — 점령 미반영 안내용). */
+  protectedTile: boolean;
   /** 경계 표시용 사용자 안내(권한 거부, 저장 실패 등). */
   notice: string | null;
   actions: {
@@ -77,6 +81,7 @@ export function useFocusSession(): UseFocusSessionResult {
   const [snapshot, setSnapshot] = useState<VerifierSnapshot | null>(null);
   const [lastSettlement, setLastSettlement] = useState<SettlementResult | null>(null);
   const [lastOccupation, setLastOccupation] = useState<OccupationOutcome | null>(null);
+  const [protectedTile, setProtectedTile] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
 
   const verifierRef = useRef<VerifierState | null>(null);
@@ -164,13 +169,16 @@ export function useFocusSession(): UseFocusSessionResult {
       return;
     }
     const sample = await getCurrentSample();
+    const zones = await readPrivateZones();
+    const startCellId = cellAt(sample);
     modeRef.current = mode;
     verifierRef.current = createVerifier(cellAt(sample));
     persistedRef.current = false;
     setSnapshot(null);
     setLastSettlement(null);
     setLastOccupation(null);
-    dispatch({ type: 'START', mode, startCellId: cellAt(sample), at: Date.now() });
+    setProtectedTile(isProtected(zones, startCellId));
+    dispatch({ type: 'START', mode, startCellId, at: Date.now() });
     await startWatch();
   }
 
@@ -199,6 +207,10 @@ export function useFocusSession(): UseFocusSessionResult {
   ): Promise<OccupationOutcome | null> {
     if (points <= 0) {
       return null; // 0점 세션은 점령 상태를 바꾸지 않는다
+    }
+    const zones = await readPrivateZones();
+    if (isProtected(zones, cellId)) {
+      return null; // 보호 구역 — 점령 시스템에서 완전 제외(§9). 세션 로그(개인 통계)는 이미 기록됐다
     }
     const territory = await readTerritory();
     const current: TileOccupation = territory[cellId] ?? { cellId, score: 0, lastEarnedAt: 0 };
@@ -290,6 +302,7 @@ export function useFocusSession(): UseFocusSessionResult {
     snapshot,
     lastSettlement,
     lastOccupation,
+    protectedTile,
     notice,
     actions: {
       start,

@@ -37,3 +37,8 @@ export function centerOf(cell: string): LatLng {
   const [lat, lng] = cellToLatLng(cell);
   return { lat, lng };
 }
+
+/** 셀 인덱스를 목록 표시용 짧은 라벨로 축약한다. */
+export function cellLabel(cellId: string): string {
+  return `#${cellId.slice(0, 7)}`;
+}

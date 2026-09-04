@@ -23,6 +23,7 @@ const baseResult: UseFocusSessionResult = {
   snapshot: null,
   lastSettlement: null,
   lastOccupation: null,
+  protectedTile: false,
   notice: null,
   actions: { start, pause, resume, end },
 };

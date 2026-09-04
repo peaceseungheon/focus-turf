@@ -8,10 +8,12 @@ import { StyleSheet } from 'react-native-unistyles';
 
 import { readSessionLog } from '../../services/storage/session-log';
 import { readTerritory } from '../../services/storage/territory-store';
+import { cellLabel } from '../territory/tile';
 import { countOccupiedTiles, summarizeSessions, tileVisitHistory } from './stats';
 
 interface Props {
   onBack: () => void;
+  onOpenPrivateZone: () => void;
 }
 
 interface MyPageData {
@@ -53,12 +55,7 @@ function formatDuration(totalMs: number): string {
   return `${hours}시간 ${minutes}분`;
 }
 
-/** H3 셀 아이디를 표시용 짧은 라벨로 축약한다. */
-function cellLabel(cellId: string): string {
-  return `#${cellId.slice(0, 7)}`;
-}
-
-export function MyPageScreen({ onBack }: Props) {
+export function MyPageScreen({ onBack, onOpenPrivateZone }: Props) {
   const [data, setData] = useState<MyPageData | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -115,6 +112,7 @@ export function MyPageScreen({ onBack }: Props) {
               <Text style={styles.stat}>점령 중인 타일</Text>
               <Text style={styles.statValue}>{data.occupiedTiles}개</Text>
             </View>
+            <Button title="보호 구역 설정" onPress={onOpenPrivateZone} />
             <Text style={styles.section}>자주 방문한 거점</Text>
             {data.visits.length === 0 ? (
               <Text style={styles.empty}>아직 기록이 없습니다. 첫 집중 세션을 시작해보세요.</Text>
