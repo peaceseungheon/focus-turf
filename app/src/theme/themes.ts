@@ -13,6 +13,9 @@ export const lightTheme = {
   colors: {
     background: '#FFFFFF',
     text: '#1C1B1F',
+    // 본문 대비 명도가 충분히 낮은 회색조 — 색약 유저에게도 명도로만 구분된다
+    textSecondary: '#5F6368',
+    border: '#E0E0E0',
     warning: '#B3261E',
     territory: {
       mine: '#3478F6',
