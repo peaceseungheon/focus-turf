@@ -4,3 +4,7 @@
 const { TextDecoder: NodeTextDecoder } = require('util');
 
 global.TextDecoder = NodeTextDecoder;
+
+// unistyles: 모의를 먼저 띄운 뒤 등록 설정을 불러 테스트에 테마를 제공한다
+require('react-native-unistyles/mocks');
+require('./unistyles');

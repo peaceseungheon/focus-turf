@@ -33,6 +33,25 @@ app/
 - 도메인 로직(H3 셀 판정, 감쇠 계산, 점수 산출 등)은 `features/` 안의 순수 TypeScript 모듈로 두고 네이티브·UI 의존 없이 작성한다(단위 테스트 용이성).
 - 신규 파일은 속한 계층에 배치하고, 애매한 경우 `features/`를 우선한다.
 
+## 스타일링·디자인 토큰 (react-native-unistyles)
+
+2026-09-04 사용자 결정으로 스타일링·테마 계층에 **react-native-unistyles v3**를 확정했다. 결정 근거: `StyleSheet.create`와 같은 형태라 마이그레이션 비용이 최소이고, New Architecture 필수라 이 프로젝트 전제와 일치하며, 토큰 기반 타입 안전과 공식 Jest mock을 제공한다. 평가 후 기각한 후보 — Shopify Restyle(사실상 동결), React Native Paper(Material Design 한정, 커스텀 브랜드 부적합), NativeWind v4(v5 전환기), gluestack-ui v5(안정판이 NativeWind v5 preview에 의존), Tamagui(러닝커브·테스트 설정 비용).
+
+- 규칙: 신규 화면·컴포넌트의 스타일은 `react-native`의 `StyleSheet`가 아니라 `react-native-unistyles`의 `StyleSheet`로 작성한다.
+- 왜: 색상·간격·타이포그래비 토큰을 코드베이스 전역에서 하나의 원천(`src/theme/themes.ts`)으로 관리해 UI 일관성을 유지한다.
+
+- 규칙: 스타일 값에 색상 리터럴을 하드코딩하지 않고 `theme.colors.*` 토큰을 참조한다. 토큰이 없는 값은 먼저 토큰에 추가한다.
+- 왜: 리터럴이 흩어지면 테마 교체·색약 대응(PRD §11) 같은 전역 변경이 불가능해진다.
+
+- 규칙: 테마·브레이크포인트 등록은 앱 루트의 `unistyles.ts`에서 `StyleSheet.configure`로 하고, 진입점(`index.ts`)에서 가장 먼저 불러온다.
+- 왜: 등록 없이 로드되면 런타임에 테마를 해석할 수 없어 실행 시점에 실패한다.
+
+- 규칙: 유닛 테스트에서 파싱된 스타일 값을 검증하지 않는다(라이브러리 공식 권고). 컴포넌트·로직 테스트에 집중하고 시각 검증은 실기기/E2E로 한다.
+- 왜: Jest 환경은 `react-native-unistyles/mocks`로 대체 동작하며, 스타일 파싱 검증은 라이브러리 내부 구현을 시험하는 셈이 된다.
+
+- 제약: react-native-unistyles는 Expo Go에서 동작하지 않는다(nitro 네이티브 모듈 필요). 이 저장소는 dev client/prebuild 기반으로 운영한다.
+- 의존성: `react-native-unistyles` + `react-native-nitro-modules`(peer).
+
 ## 네이밍 표기 규칙
 
 | 대상 | 표기 | 예 |
@@ -94,3 +113,4 @@ app/
 | OS 지오펜싱으로 타일 경계 판정 구현 | OS별 개수 한도·배터리 제약, 요구와 불일치 | 포그라운드 샘플링 + H3 셀 판정 연산(tech-stack-comparison.md §3) |
 | Hermes 호환 미확인 API 사용(Intl 일부 등) | 런타임 오류 | 사용 전 Hermes 호환 확인 |
 | 백그라운드 위치 권한을 기본(필수) 요구 | 심사 리젝 사유, PRD §11 정책 위반 | '사용 중 위치'를 필수로, 백그라운드 위치는 선택 권한으로 안내 |
+| 색상·간격 리터럴을 스타일에 하드코딩 | 토큰 원천이 무너져 전역 테마 변경·색약 대응 불가 | `src/theme/themes.ts` 토큰 추가 후 `theme.colors.*` 참조 |
